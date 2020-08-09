@@ -25,4 +25,27 @@ public class Enemy : MonoBehaviour
             transform.position = new Vector3(randomX, 7 , 0);
         }
     }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        //Debug.Log("Hit: " + other.transform.name);
+        //If other is player -> Destroy us, damage the player
+        if(other.tag == "Player")
+        {
+            //damage player
+            Player player = other.transform.GetComponent<Player>();//Calls method from Player script
+            if (player != null)
+            {
+                player.Damge();
+            }
+            Destroy(this.gameObject);
+        }
+
+        //if other is laser -> Destroy laser, then destory us
+        if(other.tag == "Laser")
+        {
+            Destroy(other.gameObject);
+            Destroy(this.gameObject);
+        }
+    }
 }

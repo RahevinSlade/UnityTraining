@@ -24,6 +24,12 @@ public class Laser : MonoBehaviour
 
         if(transform.position.y >= 8f)
         {
+            //Check if this object has a parent.
+            //destory the parent too.
+            if (transform.parent != null)
+            {
+                Destroy(transform.parent.gameObject); //AKA Triple Shot
+            }
             Destroy(this.gameObject);
         }
     }

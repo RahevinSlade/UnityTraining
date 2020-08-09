@@ -14,16 +14,26 @@ public class Player : MonoBehaviour
     [SerializeField]
     private GameObject _laserPrefab;
     [SerializeField]
+    private GameObject _tripleShotPrefab;
+    [SerializeField]
     private float _fireRate = 0.15f;
-
     private float _canFire = -1f;
-
-
+    [SerializeField]
+    private int _lives = 3;
+    private SpawnManager _spawnManager;
+    
+    private bool _isTripleShotActive = false;
     // Start is called before the first frame update
     void Start()
     {
         //Take the current position and assign it a start postion (0,0,0)
         transform.position = new Vector3(0, 0, 0);
+        _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();//Exactly like inspector, gets access to script
+
+        if (_spawnManager == null)
+        {
+            Debug.LogError("The Spawn manager is NULL");
+        }
     }
 
     // Update is called once per frame
@@ -41,7 +51,17 @@ public class Player : MonoBehaviour
     void FireLaser()
     {
             _canFire = _fireRate + Time.time;
-            Instantiate(_laserPrefab, transform.position + new Vector3(0, 0.8f, 0), Quaternion.identity);
+            Instantiate(_laserPrefab, transform.position + new Vector3(0, 1.05f, 0), Quaternion.identity);
+        //If we call fire laser, we fire 1 laser, but if tripleshotactive then fire 3 lasers
+        if (_isTripleShotActive == true)
+        {
+            Instantiate(_tripleShotPrefab, transform.position, Quaternion.identity);
+        }
+        else
+        {
+            Instantiate(_laserPrefab, transform.position + new Vector3(0, 1.05f, 0), Quaternion.identity);
+        }
+
     }
 
     void CalculateMovement()
@@ -68,5 +88,33 @@ public class Player : MonoBehaviour
             transform.position = new Vector3(11.3f, transform.position.y, 0);
 
         }
+    }
+
+    public void Damge()
+    {
+        _lives --; //Subtract 1 from lives
+        //Check if lives is 0, if yes, we die
+        if(_lives < 1)
+        {
+            //Communicate with Spawn Manager, let them know to stop
+            _spawnManager.OnPlayerDeath();
+            Destroy(this.gameObject);
+        }
+    }
+
+    public void TripleShotActive()
+    {
+        _isTripleShotActive = true;
+        StartCoroutine(TripleShotPowerDownRoutine());
+        //Tripleshot active becomes true
+        //start the power down coroutine for triple shot
+    }
+
+    //IEnumerator TripleShotPowerDownRoutine
+    //Wait 5 seconds, then set to flase
+    IEnumerator TripleShotPowerDownRoutine()
+    {
+        yield return new WaitForSeconds(5.0f);
+        _isTripleShotActive = false;
     }
 }
