@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,6 +12,7 @@ public class Player : MonoBehaviour
     //optional, value assigned
     [SerializeField]
     private float _speed = 3.5f;
+    private float _speedMultiplier = 2;
     [SerializeField]
     private GameObject _laserPrefab;
     [SerializeField]
@@ -23,16 +25,32 @@ public class Player : MonoBehaviour
     private SpawnManager _spawnManager;
     
     private bool _isTripleShotActive = false;
+    private bool _isSpeedBoostActive = false;
+    private bool _isShieldActive = false;
     // Start is called before the first frame update
+    [SerializeField]
+    private GameObject _shieldVisualizer;
+
+    [SerializeField]
+    private int _score;
+
+    private UIManager _uiManger;
     void Start()
     {
         //Take the current position and assign it a start postion (0,0,0)
         transform.position = new Vector3(0, 0, 0);
         _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();//Exactly like inspector, gets access to script
 
+        _uiManger = GameObject.Find("Canvas").GetComponent<UIManager>();
+
         if (_spawnManager == null)
         {
             Debug.LogError("The Spawn manager is NULL");
+        }
+
+        if(_uiManger == null)
+        {
+            Debug.LogError("The UIManager is null");
         }
     }
 
@@ -75,6 +93,7 @@ public class Player : MonoBehaviour
 
         transform.Translate(direction * _speed * Time.deltaTime); // Optimized 
 
+
         //If player postion on the Y is greater than 0, then, y postion = 0
         transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -3.8f, 0), 0);
 
@@ -92,13 +111,21 @@ public class Player : MonoBehaviour
 
     public void Damge()
     {
-        _lives --; //Subtract 1 from lives
-        //Check if lives is 0, if yes, we die
-        if(_lives < 1)
+        if (_isShieldActive == true)
         {
-            //Communicate with Spawn Manager, let them know to stop
-            _spawnManager.OnPlayerDeath();
-            Destroy(this.gameObject);
+            _isShieldActive = false;
+            _shieldVisualizer.SetActive(false);
+        }
+        else
+        {
+            _lives--; //Subtract 1 from lives
+                      //Check if lives is 0, if yes, we die
+            if (_lives < 1)
+            {
+                //Communicate with Spawn Manager, let them know to stop
+                _spawnManager.OnPlayerDeath();
+                Destroy(this.gameObject);
+            }
         }
     }
 
@@ -116,5 +143,32 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForSeconds(5.0f);
         _isTripleShotActive = false;
+    }
+
+    public void SpeedBoostActive()
+    {
+        _isSpeedBoostActive = true;
+        _speed *= _speedMultiplier;
+        StartCoroutine(SpeedBoostPowerDownRoutine());
+    }
+
+    IEnumerator SpeedBoostPowerDownRoutine()
+    {
+        yield return new WaitForSeconds(5.0f);
+        _isSpeedBoostActive = false;
+        _speed /= _speedMultiplier;
+    }
+
+    public void ShieldActive()
+    {
+        _isShieldActive = true;
+        _shieldVisualizer.SetActive(true);
+    }
+
+    public void AddScore(int points)
+    {
+        _score += points;
+        _uiManger.UpdateScore(_score);
+        //communicate to ui to update score
     }
 }
