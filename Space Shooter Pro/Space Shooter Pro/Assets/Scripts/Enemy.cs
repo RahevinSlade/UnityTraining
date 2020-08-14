@@ -9,11 +9,22 @@ public class Enemy : MonoBehaviour
     private float _speed = 4.0f;
 
     private Player _player;
+    //Handle to animator component
+    private Animator _anim;
     // Start is called before the first frame update
     void Start()
     {
         _player = GameObject.Find("Player").GetComponent<Player>();
-        
+        if(_player == null)
+        {
+            Debug.LogError("Where the player go?");
+        }
+        //Asign the anim
+        _anim = GetComponent<Animator>();
+        if (_anim == null)
+        {
+            Debug.LogError("Enemy Animator is Null");
+        }
     }
 
     // Update is called once per frame
@@ -41,7 +52,10 @@ public class Enemy : MonoBehaviour
             {
                 _player.Damge();
             }
-            Destroy(this.gameObject);
+            //Trigger anim
+            _anim.SetTrigger("OnEnemyDeath");
+            _speed = 0;
+            Destroy(this.gameObject, 2.8f);
         }
 
         //if other is laser -> Destroy laser, then destory us
@@ -52,7 +66,10 @@ public class Enemy : MonoBehaviour
             {
                 _player.AddScore(10);
             }
-            Destroy(this.gameObject);
+            //Trigger Anim
+            _anim.SetTrigger("OnEnemyDeath");
+            _speed = 0;
+            Destroy(this.gameObject, 2.8f);
         }
     }
 }

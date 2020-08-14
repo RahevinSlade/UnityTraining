@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -32,11 +33,18 @@ public class Player : MonoBehaviour
     private GameObject _shieldVisualizer;
 
     [SerializeField]
+    private GameObject[] _damageEngine;
+    private int _engine;
+    [SerializeField]
     private int _score;
 
     private UIManager _uiManger;
     void Start()
     {
+        _damageEngine[0].gameObject.SetActive(false);
+        _damageEngine[1].gameObject.SetActive(false);
+        _engine = Random.Range(0, 2);
+
         //Take the current position and assign it a start postion (0,0,0)
         transform.position = new Vector3(0, 0, 0);
         _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();//Exactly like inspector, gets access to script
@@ -120,11 +128,28 @@ public class Player : MonoBehaviour
         {
             _lives--; //Subtract 1 from lives
                       //Check if lives is 0, if yes, we die
+            _uiManger.UpdateLives(_lives);
             if (_lives < 1)
             {
                 //Communicate with Spawn Manager, let them know to stop
                 _spawnManager.OnPlayerDeath();
                 Destroy(this.gameObject);
+            }
+            if(_lives == 2)
+            {
+                _damageEngine[_engine].gameObject.SetActive(true);
+                if (_engine == 1)
+                {
+                    _engine--;
+                }
+                else
+                {
+                    _engine++;
+                }
+            }
+            else if (_lives == 1)
+            {
+                _damageEngine[_engine].gameObject.SetActive(true);
             }
         }
     }
